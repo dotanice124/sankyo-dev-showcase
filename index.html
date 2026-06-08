@@ -841,10 +841,7 @@
                             {/* Clickable logo → back to Live Preview (home) */}
                             <button onClick={() => setTab('viewport')} aria-label="SankyoAlumi — home"
                                 className="flex items-center gap-3 shrink-0 group rounded-2xl pr-2 -ml-1 transition-colors hover:bg-alu-100/60">
-                                <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-display font-bold text-white text-[16px] shadow-md group-hover:scale-105 group-active:scale-95 transition-transform relative overflow-hidden" style={{ background: 'linear-gradient(145deg, #0060AB, #00c6ff)' }}>
-                                    <span className="relative z-10">三</span>
-                                    <span className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,.6), transparent 50%)' }}></span>
-                                </div>
+                                <img src="logo.png" alt="SankyoAlumi Logo" className="w-12 h-12 object-contain drop-shadow-sm group-hover:scale-105 transition-transform" />
                                 <div className="hidden md:flex flex-col leading-none text-left">
                                     <span className="font-display font-bold text-ink text-[17px] tracking-tight">SankyoAlumi</span>
                                     <span className="font-mono text-[9px] text-slate2 tracking-[0.18em] uppercase mt-1 group-hover:text-blue transition-colors">Dev Showcase</span>
@@ -914,8 +911,7 @@
                     <footer className="bg-white border-t border-hair mt-auto relative z-10">
                         <div className="max-w-[1240px] mx-auto px-6 lg:px-10 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
                             <button onClick={() => setTab('viewport')} className="flex items-center gap-4 group">
-                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-display font-bold text-white text-[16px] shadow-sm group-hover:scale-105 transition-transform" style={{ background: 'linear-gradient(145deg, #0060AB, #00c6ff)' }}>三</div>
-                                <div className="text-left">
+<img src="logo.png" alt="SankyoAlumi Logo" className="w-12 h-12 object-contain drop-shadow-sm group-hover:scale-105 transition-transform" />                                <div className="text-left">
                                     <div className="font-display font-bold text-[16px] text-ink">{dict.footer}</div>
                                     <div className="text-[13px] text-slate2 font-bold mt-0.5">SankyoAlumi Thailand</div>
                                 </div>
