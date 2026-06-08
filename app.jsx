@@ -2,7 +2,7 @@ const { useState, useEffect, useRef, useLayoutEffect } = React;
 
 // =============================================
 // SankyoAlumi Thailand — Development Showcase
-// app.jsx — React Application (Rotate Fix)
+// app.jsx — React Application
 // =============================================
 
 // --- 1. DATA DICTIONARY ---
@@ -203,7 +203,7 @@ function Bar({ label, pct, cls }) { const [w, setW] = useState('0%'); const ref 
 function SectionHead({ kicker, title, count }) { return (<div className="flex items-end justify-between mb-8 pb-5 border-b border-hair"><div>{kicker && <div className="font-mono text-[10px] tracking-[0.22em] text-blue uppercase mb-2 font-bold">{kicker}</div>}<h2 className="font-display text-[26px] md:text-[30px] font-bold tracking-tightest text-ink leading-none">{title}</h2></div>{count && <span className="font-mono text-[11px] text-slate2 bg-white hairline px-3 py-1 rounded-full shadow-sm">{count}</span>}</div>); }
 function DeviceGlyph({ frame, active }) { const c = active ? '#0060AB' : '#64748b'; if (frame === 'phone') return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5"><rect x="6" y="2" width="12" height="20" rx="3" /><path d="M11 18h2" /></svg>; if (frame === 'tablet') return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5"><rect x="4" y="2" width="16" height="20" rx="2.5" /><path d="M11 18h2" /></svg>; return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5"><rect x="2" y="4" width="20" height="14" rx="2" /><path d="M8 22h8M12 18v4" /></svg>; }
 
-// --- 5. LIVE VIEWPORT (ROTATE = rotate iframe inside fixed frame) ---
+// --- 5. LIVE VIEWPORT ---
 function LiveViewport({ lang, dict }) {
     const [pageIdx, setPageIdx] = useState(0);
     const [devId, setDevId] = useState('laptop');
@@ -216,13 +216,10 @@ function LiveViewport({ lang, dict }) {
     const device = DEVICES.find(d => d.id === devId);
     const isMobileFrame = device.frame === 'phone' || device.frame === 'tablet';
     const land = landscape && isMobileFrame;
-
-    // ROTATE FIX: กรอบคงที่เสมอ (portrait), viewport สำหรับ readout
-    const dw = device.w;
+    const dw = device.w;   // กรอบใช้ขนาดเดิมเสมอ
     const dh = device.h;
-    const viewW = land ? device.h : device.w;
+    const viewW = land ? device.h : device.w;  // สำหรับแสดงตัวเลข
     const viewH = land ? device.w : device.h;
-
     const CH = 44, PADP = 16, PADT = 20;
     let baseW, baseH, standH = 0;
     if (device.frame === 'phone') { baseW = dw + PADP * 2; baseH = dh + PADP * 2; }
@@ -240,38 +237,27 @@ function LiveViewport({ lang, dict }) {
     const endChipDrag = () => { drag.current.down = false; };
 
     const Chrome = (<div className="h-[44px] bg-[#f1f5f9] border-b border-hair flex items-center gap-3 px-5 shrink-0 shadow-sm relative z-10"><div className="flex gap-2"><span className="w-3.5 h-3.5 rounded-full bg-[#ff5f57] shadow-inner"></span><span className="w-3.5 h-3.5 rounded-full bg-[#febc2e] shadow-inner"></span><span className="w-3.5 h-3.5 rounded-full bg-[#28c840] shadow-inner"></span></div><div className="flex-1 mx-4 bg-white border border-hair rounded-lg text-[12px] text-slate2 font-mono px-4 py-1.5 truncate flex items-center gap-2.5 shadow-sm justify-center max-w-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-alu-400 shrink-0"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>sankyoalumithailand.com<span className="opacity-40">{decodeURIComponent(path).slice(0, 32)}</span></div></div>);
-
-    // ROTATE FIX: Screen — landscape หมุน iframe -90° ข้างในกรอบตั้ง
-    const Screen = (
-        <div className="w-full h-full bg-white overflow-hidden vp-loading relative">
-            {land ? (
-                <iframe key={page.url + devId + landscape} src={page.url} title={page.name[lang]}
-                    loading="lazy" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    className="animate-fade"
-                    style={{
-                        position: 'absolute',
-                        width: dh,
-                        height: dw,
-                        border: 0,
-                        transformOrigin: 'top left',
-                        transform: 'rotate(-90deg) translateX(-' + dh + 'px)'
-                    }} />
-            ) : (
-                <iframe key={page.url + devId + landscape} src={page.url} title={page.name[lang]}
-                    loading="lazy" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    className="animate-fade"
-                    style={{ width: '100%', height: '100%', border: 0 }} />
-            )}
-        </div>
-    );
-
+   const Screen = (
+    <div className="w-full h-full bg-white overflow-hidden vp-loading relative">
+        {land ? (
+            <iframe ... style={{
+                position:'absolute',
+                width: dh,       // สลับ: กว้าง = ความสูงกรอบ
+                height: dw,      // สูง = ความกว้างกรอบ
+                border: 0,
+                transformOrigin: 'top left',
+                transform: `rotate(-90deg) translateX(-${dh}px)`
+            }} />
+        ) : (
+            <iframe ... style={{ width:'100%', height:'100%', border:0 }} />
+        )}
+    </div>
+);
     let frame;
     if (device.frame === 'phone') {
-        // ROTATE FIX: Dynamic Island + Home Indicator = portrait เสมอ (กรอบไม่หมุน)
-        frame = (<div style={{ width: baseW, height: baseH }} className="relative stage-shadow rounded-[56px] transition-all duration-300"><div className="absolute inset-0 rounded-[56px] bg-[#1a1c23] shadow-inner"></div><div className="absolute inset-0 rounded-[56px] ring-2 ring-white/10"></div><div className="absolute overflow-hidden rounded-[42px] bg-black" style={{ top: PADP, left: PADP, right: PADP, bottom: PADP }}>{Screen}<div className="absolute top-3 left-1/2 -translate-x-1/2 w-[30%] h-[28px] bg-black rounded-full z-20 shadow-md"></div><div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[35%] h-[4px] bg-black/20 rounded-full z-20"></div></div></div>);
+        frame = (<div style={{ width: baseW, height: baseH }} className="relative stage-shadow rounded-[56px] transition-all duration-300"><div className="absolute inset-0 rounded-[56px] bg-[#1a1c23] shadow-inner"></div><div className="absolute inset-0 rounded-[56px] ring-2 ring-white/10"></div><div className="absolute overflow-hidden rounded-[42px] bg-black" style={{ top: PADP, left: PADP, right: PADP, bottom: PADP }}>{Screen}<div className={`absolute bg-black rounded-full z-20 shadow-md ${land ? 'left-3 top-1/2 -translate-y-1/2 h-[30%] w-[28px]' : 'top-3 left-1/2 -translate-x-1/2 w-[30%] h-[28px]'}`}></div><div className={`absolute bg-black/20 rounded-full z-20 ${land ? 'right-2 top-1/2 -translate-y-1/2 h-[35%] w-[4px]' : 'bottom-2 left-1/2 -translate-x-1/2 w-[35%] h-[4px]'}`}></div></div></div>);
     } else if (device.frame === 'tablet') {
-        // ROTATE FIX: Camera hole = portrait เสมอ
-        frame = (<div style={{ width: baseW, height: baseH }} className="relative stage-shadow rounded-[36px] transition-all duration-300"><div className="absolute inset-0 rounded-[36px] bg-[#1e222b]"></div><div className="absolute inset-0 rounded-[36px] ring-2 ring-white/10"></div><div className="absolute overflow-hidden rounded-[20px] bg-black" style={{ top: PADT, left: PADT, right: PADT, bottom: PADT }}>{Screen}<div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-[6px] h-[6px] bg-[#000] rounded-full z-20 ring-1 ring-white/10"></div></div></div>);
+        frame = (<div style={{ width: baseW, height: baseH }} className="relative stage-shadow rounded-[36px] transition-all duration-300"><div className="absolute inset-0 rounded-[36px] bg-[#1e222b]"></div><div className="absolute inset-0 rounded-[36px] ring-2 ring-white/10"></div><div className="absolute overflow-hidden rounded-[20px] bg-black" style={{ top: PADT, left: PADT, right: PADT, bottom: PADT }}>{Screen}<div className={`absolute w-[6px] h-[6px] bg-[#000] rounded-full z-20 ring-1 ring-white/10 ${land ? 'left-2.5 top-1/2 -translate-y-1/2' : 'top-2.5 left-1/2 -translate-x-1/2'}`}></div></div></div>);
     } else {
         frame = (<div style={{ width: baseW, height: baseH }} className="relative transition-all duration-300"><div className="absolute top-0 left-0 right-0 rounded-t-[16px] rounded-b-md overflow-hidden bg-white hairline stage-shadow flex flex-col border border-black/5" style={{ height: CH + dh }}>{Chrome}<div className="flex-1 overflow-hidden">{Screen}</div></div>{device.id === 'laptop' ? (<div className="absolute left-1/2 -translate-x-1/2 flex justify-center" style={{ top: CH + dh, width: baseW * 1.14 }}><div className="brushed rounded-b-[18px] border-x border-b border-alu-300 relative shadow-2xl flex flex-col items-center w-full" style={{ height: standH }}><div className="absolute top-0 w-28 h-2 rounded-b-md bg-alu-300/40 shadow-inner"></div></div></div>) : null}</div>);
     }
@@ -291,8 +277,7 @@ function LiveViewport({ lang, dict }) {
             <div className="flex flex-wrap items-center gap-4 bg-white/80 backdrop-blur-md hairline rounded-2xl p-3 mb-8 shadow-sm">
                 <div className="flex items-center gap-1.5 bg-alu-50 rounded-xl p-1.5 overflow-x-auto hide-sb border border-hair">{DEVICES.map(d => (<button key={d.id} onClick={() => setDevId(d.id)} className={`shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-[12px] font-bold transition-all duration-200 ${d.id === devId ? 'bg-white text-blue shadow-sm hairline' : 'text-slate2 hover:text-ink hover:bg-white/60'}`}><DeviceGlyph frame={d.frame} active={d.id === devId} /><span className="hidden sm:inline">{d.short}</span></button>))}</div>
                 <button onClick={() => setLandscape(v => !v)} disabled={!isMobileFrame} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold border transition-all duration-200 ${!isMobileFrame ? 'opacity-40 cursor-not-allowed bg-white text-slate2 border-hair' : land ? 'bg-blue/10 text-blue border-blue/20' : 'bg-white text-slate2 border-hair hover:text-ink hover:bg-alu-50 shadow-sm'}`}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" /><path d="M3 21v-5h5" /></svg>{dict.rotate}</button>
-                {/* ROTATE FIX: readout ใช้ viewW × viewH */}
-                <span className="font-mono text-[12px] text-ink/60 font-bold ml-auto px-4 py-2 bg-alu-50 rounded-xl hidden sm:block border border-hair shadow-inner">{viewW} × {viewH}<span className="opacity-40 ml-2">· {(scale * 100).toFixed(0)}%</span></span>
+                <span className="font-mono text-[12px] text-ink/60 font-bold ml-auto px-4 py-2 bg-alu-50 rounded-xl hidden sm:block border border-hair shadow-inner">{dw} × {dh}<span className="opacity-40 ml-2">· {(scale * 100).toFixed(0)}%</span></span>
                 <a href={page.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-ink hover:bg-blue text-white text-[12.5px] font-bold px-5 py-2 rounded-xl transition-colors ml-auto sm:ml-0 shadow-md">{dict.openLive}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg></a>
             </div>
             <div ref={stageRef} className="alu-mesh grid-lines hairline rounded-[32px] px-4 py-12 flex items-center justify-center overflow-hidden relative" style={{ minHeight: stageH + 80 }}>
@@ -377,7 +362,7 @@ function EngineeringTab({ lang, dict }) {
     );
 }
 
-// --- 11. APP ---
+// --- 11. APP (shell: nav, hero, content, footer) ---
 function App() {
     const [lang, setLang] = useState('th');
     const [tab, setTab] = useState('viewport');
