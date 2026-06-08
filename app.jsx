@@ -216,10 +216,8 @@ function LiveViewport({ lang, dict }) {
     const device = DEVICES.find(d => d.id === devId);
     const isMobileFrame = device.frame === 'phone' || device.frame === 'tablet';
     const land = landscape && isMobileFrame;
-    const dw = device.w;   // กรอบใช้ขนาดเดิมเสมอ
-    const dh = device.h;
-    const viewW = land ? device.h : device.w;  // สำหรับแสดงตัวเลข
-    const viewH = land ? device.w : device.h;
+    const dw = land ? device.h : device.w;
+    const dh = land ? device.w : device.h;
     const CH = 44, PADP = 16, PADT = 20;
     let baseW, baseH, standH = 0;
     if (device.frame === 'phone') { baseW = dw + PADP * 2; baseH = dh + PADP * 2; }
@@ -237,22 +235,8 @@ function LiveViewport({ lang, dict }) {
     const endChipDrag = () => { drag.current.down = false; };
 
     const Chrome = (<div className="h-[44px] bg-[#f1f5f9] border-b border-hair flex items-center gap-3 px-5 shrink-0 shadow-sm relative z-10"><div className="flex gap-2"><span className="w-3.5 h-3.5 rounded-full bg-[#ff5f57] shadow-inner"></span><span className="w-3.5 h-3.5 rounded-full bg-[#febc2e] shadow-inner"></span><span className="w-3.5 h-3.5 rounded-full bg-[#28c840] shadow-inner"></span></div><div className="flex-1 mx-4 bg-white border border-hair rounded-lg text-[12px] text-slate2 font-mono px-4 py-1.5 truncate flex items-center gap-2.5 shadow-sm justify-center max-w-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-alu-400 shrink-0"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>sankyoalumithailand.com<span className="opacity-40">{decodeURIComponent(path).slice(0, 32)}</span></div></div>);
-   const Screen = (
-    <div className="w-full h-full bg-white overflow-hidden vp-loading relative">
-        {land ? (
-            <iframe ... style={{
-                position:'absolute',
-                width: dh,       // สลับ: กว้าง = ความสูงกรอบ
-                height: dw,      // สูง = ความกว้างกรอบ
-                border: 0,
-                transformOrigin: 'top left',
-                transform: `rotate(-90deg) translateX(-${dh}px)`
-            }} />
-        ) : (
-            <iframe ... style={{ width:'100%', height:'100%', border:0 }} />
-        )}
-    </div>
-);
+    const Screen = (<div className="w-full h-full bg-white overflow-hidden vp-loading relative"><iframe key={page.url + devId + landscape} src={page.url} title={page.name[lang]} loading="lazy" sandbox="allow-same-origin allow-scripts allow-popups allow-forms" style={{ width: '100%', height: '100%', border: 0 }} className="animate-fade" /></div>);
+
     let frame;
     if (device.frame === 'phone') {
         frame = (<div style={{ width: baseW, height: baseH }} className="relative stage-shadow rounded-[56px] transition-all duration-300"><div className="absolute inset-0 rounded-[56px] bg-[#1a1c23] shadow-inner"></div><div className="absolute inset-0 rounded-[56px] ring-2 ring-white/10"></div><div className="absolute overflow-hidden rounded-[42px] bg-black" style={{ top: PADP, left: PADP, right: PADP, bottom: PADP }}>{Screen}<div className={`absolute bg-black rounded-full z-20 shadow-md ${land ? 'left-3 top-1/2 -translate-y-1/2 h-[30%] w-[28px]' : 'top-3 left-1/2 -translate-x-1/2 w-[30%] h-[28px]'}`}></div><div className={`absolute bg-black/20 rounded-full z-20 ${land ? 'right-2 top-1/2 -translate-y-1/2 h-[35%] w-[4px]' : 'bottom-2 left-1/2 -translate-x-1/2 w-[35%] h-[4px]'}`}></div></div></div>);
