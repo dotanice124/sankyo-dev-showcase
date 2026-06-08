@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SankyoAlumi Thailand — Enterprise Development Showcase</title>
+    <meta name="description" content="Premium interactive showcase of frontend/backend development work for sankyoalumithailand.com">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: '#0a1628',
+                        slate2: '#64748b',
+                        hair: '#e2e8f0',
+                        alu: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8'
+                        },
+                        blue: {
+                            DEFAULT: '#0060AB',
+                            light: '#3d8fdd',
+                            deep: '#004a85',
+                            glow: '#00c6ff'
+                        },
+                        success: '#2dd4a0',
+                        gold: '#f0c040'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans Thai', 'DM Sans', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace'],
+                        display: ['Prompt', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { background-color: #f8fafc; color: #0a1628; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        .hide-sb::-webkit-scrollbar { display: none; }
+        .hide-sb { -ms-overflow-style: none; scrollbar-width: none; }
+        .thin-sb::-webkit-scrollbar { width: 6px; height: 6px; }
+        .thin-sb::-webkit-scrollbar-track { background: transparent; }
+        .thin-sb::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+
+        .hairline { border: 1px solid rgba(226, 232, 240, 0.8); }
+        .stage-shadow { box-shadow: 0 30px 60px -12px rgba(10, 22, 40, 0.15), 0 18px 36px -18px rgba(10, 22, 40, 0.1); }
+        .card-shadow { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 10px -6px rgba(0, 0, 0, 0.02); }
+
+        @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes blobFloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-20px) scale(1.05); } }
+
+        .reveal { opacity: 0; animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fade { animation: fadeIn 0.6s ease-out forwards; }
+        .blob-anim { animation: blobFloat 8s ease-in-out infinite; }
+
+        .vp-loading::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 24px; height: 24px; margin: -12px 0 0 -12px;
+            border: 3px solid #e2e8f0; border-top-color: #0060AB;
+            border-radius: 50%; animation: spin 1s linear infinite; z-index: 0;
+        }
+        iframe { position: relative; z-index: 1; background: transparent; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .alu-mesh { background-color: #f8fafc; background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px; }
+        .grid-lines {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+        }
+        .brushed { background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.1); }
+
+        .sheen-wrap { position: relative; overflow: hidden; }
+        .sheen-wrap::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(to bottom right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(45deg); animation: sheen 3.5s ease-in-out infinite;
+        }
+        @keyframes sheen { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useLayoutEffect } = React;
+
+        // --- 1. DATA DICTIONARY ---
+        const DICT = {
+            th: {
+                eyebrow: "สรุปผลงานพัฒนาเว็บไซต์",
+                h1a: "SankyoAlumi",
+                h1b: "Thailand",
+                lede: "สรุปภาพรวมงานพัฒนา Frontend & Backend, โครงสร้างระบบ, และ UX/UI แบบ Responsive ตลอดโปรเจกต์ (Bilingual TH/EN)",
+                footer: "Website Development Summary",
+                company: "บริษัท ไทย-ออสต์ อะลูมิเนียม จำกัด",
+                openLive: "เปิดเว็บไซต์จริง",
+                rotate: "หมุนจอ",
+                vp_title: "เว็บไซต์จริง (Live Viewports)",
+                vp_hint: "ลากแถบหน้า หรือสลับอุปกรณ์ด้านบน เพื่อดูการแสดงผล Responsive แบบสดๆ",
+                page: "หน้า",
+                tab_viewport: "Live Preview",
+                tab_summary: "Summary",
+                tab_sitemap: "Sitemap",
+                tab_responsive: "Responsive",
+                tab_ci: "CI Design",
+                tab_eng: "Engineering",
+                tasksTitle: "ไฮไลท์งานพัฒนา (Key Highlights)",
+                taskItems: "รายการ",
+                stackTitle: "Tech Stack & Architecture",
+                frontend: "Frontend",
+                backend: "Backend / Platform",
+                tooling: "Tooling",
+                progTitle: "ความคืบหน้าภาพรวม",
+                timelineTitle: "ลำดับการทำงาน (Timeline)",
+                sitemapTitle: "Sitemap (แผนผังหน้าเว็บ)",
+                pageCol: "หน้าเว็บ (Page)",
+                urlCol: "URL / Path",
+                funcCol: "ฟังก์ชั่นหลัก (Features)",
+                typeCol: "ประเภท (Type)",
+                respTitle: "Responsive Breakpoints",
+                fileTitle: "ไฟล์ส่งมอบ (Deliverables)",
+                colorTitle: "Color Palette",
+                fontTitle: "Typography & Fonts",
+                idTitle: "Brand Identity",
+                auditTitle: "Technical Audit",
+                readiness: "Production Ready",
+                roadmapTitle: "Roadmap (แผนพัฒนาต่อ)",
+                s_pages: "หน้าที่พัฒนา",
+                s_breakpoints: "Breakpoints",
+                s_features: "ฟีเจอร์",
+                s_series: "ซีรีส์สินค้า",
+                s_langs: "ภาษา",
+                s_ready: "พร้อมใช้งาน"
+            },
+            en: {
+                eyebrow: "Website Development Summary",
+                h1a: "SankyoAlumi",
+                h1b: "Thailand",
+                lede: "Complete overview of Frontend & Backend development, system architecture, and responsive UX/UI design (Bilingual TH/EN).",
+                footer: "Website Development Summary",
+                company: "Thai-Aust Aluminium Co., Ltd.",
+                openLive: "Open Live Site",
+                rotate: "Rotate",
+                vp_title: "Live Viewports",
+                vp_hint: "Drag the page bar or switch devices above to test live responsiveness",
+                page: "Pages",
+                tab_viewport: "Live Preview",
+                tab_summary: "Summary",
+                tab_sitemap: "Sitemap",
+                tab_responsive: "Responsive",
+                tab_ci: "CI Design",
+                tab_eng: "Engineering",
+                tasksTitle: "Development Highlights",
+                taskItems: "Tasks",
+                stackTitle: "Tech Stack & Architecture",
+                frontend: "Frontend",
+                backend: "Backend / Platform",
+                tooling: "Tooling",
+                progTitle: "Overall Progress",
+                timelineTitle: "Development Timeline",
+                sitemapTitle: "Sitemap Architecture",
+                pageCol: "Page",
+                urlCol: "URL / Path",
+                funcCol: "Main Features",
+                typeCol: "Type",
+                respTitle: "Responsive Breakpoints",
+                fileTitle: "Deliverables (Files)",
+                colorTitle: "Color Palette",
+                fontTitle: "Typography & Fonts",
+                idTitle: "Brand Identity",
+                auditTitle: "Technical Audit",
+                readiness: "Production Ready",
+                roadmapTitle: "Roadmap (Next Steps)",
+                s_pages: "Pages Built",
+                s_breakpoints: "Breakpoints",
+                s_features: "Features",
+                s_series: "Product Series",
+                s_langs: "Languages",
+                s_ready: "Production Ready"
+            }
+        };
+
+        // --- 2. CONSTANTS & DATA ---
+        const BASE = "https://www.sankyoalumithailand.com";
+
+        const DEVICES = [
+            { id: 'mobileS', frame: 'phone', w: 320, h: 568, short: 'SE' },
+            { id: 'mobileL', frame: 'phone', w: 390, h: 844, short: 'Pro' },
+            { id: 'tablet', frame: 'tablet', w: 768, h: 1024, short: 'iPad' },
+            { id: 'laptop', frame: 'laptop', w: 1280, h: 800, short: 'MacBook' }
+        ];
+
+        const STATS = [
+            { num: 14, key: "s_pages", suffix: "+" },
+            { num: 3, key: "s_breakpoints", suffix: "" },
+            { num: 36, key: "s_features", suffix: "+" },
+            { num: 4, key: "s_series", suffix: "" },
+            { num: 2, key: "s_langs", suffix: "" },
+            { num: 100, key: "s_ready", suffix: "%" }
+        ];
+
+        const PAGES = [
+            { id: 'home', name: { th: "หน้าแรก", en: "Home" }, url: `${BASE}/%E0%B8%AB%E0%B8%99%E0%B9%89%E0%B8%B2%E0%B9%81%E0%B8%A3%E0%B8%81/5d103ec28007f006ec989e37`, icon: "home", type: "Corporate", funcs: { th: ["Hero Banner", "สินค้าแนะนำ", "โครงการ"], en: ["Hero Banner", "Recommended", "Projects"] } },
+            { id: 'about', name: { th: "เกี่ยวกับบริษัท", en: "About" }, url: `${BASE}/%E0%B9%80%E0%B8%81%E0%B8%B5%E0%B9%88%E0%B8%A2%E0%B8%A7%E0%B8%81%E0%B8%B1%E0%B8%9A%E0%B9%80%E0%B8%A3%E0%B8%B2`, icon: "about", type: "Content", funcs: { th: ["ประวัติ", "มาตรฐาน JIS"], en: ["History", "JIS Standard"] } },
+            { id: 'shop', name: { th: "ร้านค้า", en: "Shop" }, url: `${BASE}/%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%99%E0%B8%84%E0%B9%89%E0%B8%B2`, icon: "shop", type: "E-commerce", funcs: { th: ["ค้นหาสินค้า", "หมวดหมู่"], en: ["Search", "Categories"] } },
+            { id: 'products', name: { th: "ผลิตภัณฑ์ของเรา", en: "Our Products" }, url: `${BASE}/%E0%B8%9C%E0%B8%A5%E0%B8%B4%E0%B8%95%E0%B8%A0%E0%B8%B1%E0%B8%93%E0%B8%91%E0%B9%8C%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A3%E0%B8%B2/69b21761d9c91d0013d49cac`, icon: "products", type: "Corporate", funcs: { th: ["รวมผลิตภัณฑ์", "ข้อมูลเฉพาะ"], en: ["All Products", "Specs"] }, isNew: true },
+            { id: 'doors', name: { th: "ประตู (Doors)", en: "Doors" }, url: `${BASE}/%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%95%E0%B8%B9/5d81a91dd9442e00193ee724`, icon: "doors", type: "Product", funcs: { th: ["ซีรีส์ประตู", "สั่งซื้อ"], en: ["Door Series", "Order"] } },
+            { id: 'windows', name: { th: "หน้าต่าง (Windows)", en: "Windows" }, url: `${BASE}/%E0%B8%AB%E0%B8%99%E0%B9%89%E0%B8%B2%E0%B8%95%E0%B9%88%E0%B8%B2%E0%B8%87/5d81a927cb82cc00192a4539`, icon: "windows", type: "Product", funcs: { th: ["หน้าต่าง Low-E", "ดีไซน์"], en: ["Low-E Windows", "Design"] }, isNew: true },
+            { id: 'custom', name: { th: "สินค้าสั่งผลิตพิเศษ", en: "Made to Order" }, url: `${BASE}/%E0%B8%87%E0%B8%B2%E0%B8%99%E0%B8%AA%E0%B8%B1%E0%B9%88%E0%B8%87%E0%B8%97%E0%B8%B3/5d81a92e097716001907ebf4`, icon: "custom", type: "Corporate", funcs: { th: ["โปรเจกต์ไฮเอนด์", "ขอใบเสนอราคา"], en: ["High-end", "Request Quote"] } },
+            { id: 'portfolio', name: { th: "ตัวอย่างงาน", en: "Portfolio" }, url: `${BASE}/%E0%B8%95%E0%B8%B1%E0%B8%A7%E0%B8%AD%E0%B8%A2%E0%B9%88%E0%B8%B2%E0%B8%87%E0%B8%87%E0%B8%B2%E0%B8%99/5d8053ebcb82cc00192a3562`, icon: "portfolio", type: "Gallery", funcs: { th: ["คลังผลงาน", "ไอเดีย"], en: ["Gallery", "Inspirations"] }, isNew: true },
+            { id: 'projectmap', name: { th: "แผนที่โครงการ", en: "Project Map" }, url: `${BASE}/%E0%B9%81%E0%B8%9C%E0%B8%99%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B9%82%E0%B8%84%E0%B8%A3%E0%B8%87%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AD%E0%B9%89%E0%B8%B2%E0%B8%87%E0%B8%AD%E0%B8%B4%E0%B8%87/6a03dddb12e21200139d6cc1`, icon: "map", type: "Tool", funcs: { th: ["SVG Map", "5,000+ Pins", "Filters"], en: ["SVG Map", "5k+ Pins", "Filters"] } },
+            { id: 'sitemap', name: { th: "แผนผังเว็บไซต์", en: "Sitemap" }, url: `${BASE}/%E0%B9%81%E0%B8%9C%E0%B8%99%E0%B8%9C%E0%B8%B1%E0%B8%87%E0%B9%80%E0%B8%A7%E0%B9%87%E0%B8%9A%E0%B9%84%E0%B8%8B%E0%B8%95%E0%B9%8C/69f17ce77e9a1c0013ac2ce3`, icon: "sitemap", type: "Tool", funcs: { th: ["Tree Structure", "All Links"], en: ["Tree Structure", "All Links"] } },
+            { id: 'news', name: { th: "ข่าวสารและบทความ", en: "News & Articles" }, url: `${BASE}/%E0%B8%82%E0%B9%88%E0%B8%B2%E0%B8%A7%E0%B8%AA%E0%B8%B2%E0%B8%A3/68aff4acb56d610013f5e938`, icon: "news", type: "Content", funcs: { th: ["บทความ", "หมวดหมู่"], en: ["Articles", "Categories"] } },
+            { id: 'ecatalog', name: { th: "E-catalog", en: "E-catalog" }, url: `${BASE}/e-catalog/5d9c4bb79de91700128e3456`, icon: "catalog", type: "Tool", funcs: { th: ["PDF Viewer", "ดาวน์โหลด"], en: ["PDF Viewer", "Download"] } },
+            { id: 'contact', name: { th: "ติดต่อเรา", en: "Contact Us" }, url: `${BASE}/%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B9%88%E0%B8%AD%E0%B9%80%E0%B8%A3%E0%B8%B2/5d8053f4d312ef0019336070`, icon: "contact", type: "Corporate", funcs: { th: ["Google Maps", "แบบฟอร์ม"], en: ["Google Maps", "Form"] } },
+            { id: 'faq', name: { th: "คำถามที่พบบ่อย (FAQ)", en: "FAQ" }, url: `${BASE}/%E0%B8%9B%E0%B8%B1%E0%B8%8D%E0%B8%AB%E0%B8%B2%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%9E%E0%B8%9A%E0%B8%9A%E0%B9%88%E0%B8%AD%E0%B8%A2_Und_(FAQ)/6a0bcbf83c86100013db9b5a`, icon: "faq", type: "Content", funcs: { th: ["Accordion", "ค้นหา"], en: ["Accordion", "Search"] } }
+        ];
+
+        const TASKS = [
+            {
+                id: "ui-ux", num: "#01", title: { th: "Enterprise UI/UX Architecture", en: "Enterprise UI/UX Architecture" },
+                page: "Global UI", badges: [{ label: "✓ Completed", color: "text-ink bg-alu-100" }, { label: "Design", color: "text-blue bg-blue/10" }],
+                tags: ["Figma", "HTML/CSS", "Apple-style Design"],
+                features: { th: ["ออกแบบดีไซน์ใหม่สไตล์ Premium/Minimalist", "เพิ่มพื้นที่ Whitespace และ Typography ชัดเจน", "สร้าง Identity ที่สื่อถึงอะลูมิเนียมคุณภาพสูง"], en: ["Premium/Minimalist UI Overhaul", "Improved Whitespace & Typography", "High-quality Aluminum brand identity"] }
+            },
+            {
+                id: "navbar", num: "#02", title: { th: "Responsive Navbar & Bilingual", en: "Responsive Navbar & Bilingual" },
+                page: "Global Navigation", badges: [{ label: "✓ Completed", color: "text-success bg-success/10" }, { label: "UI", color: "text-ink bg-alu-100" }],
+                tags: ["Flexbox", "JS Toggle", "TH/EN"],
+                features: { th: ["ออกแบบ Navbar รองรับ 3 Breakpoints", "ปุ่มสลับภาษาแบบ Capsule เรียบหรู", "Dropdown เมนูสมูท"], en: ["Navbar for 3 Breakpoints", "Premium Capsule language toggle", "Smooth dropdowns"] }
+            },
+            {
+                id: "projectmap", num: "#03", title: { th: "Interactive Project Map", en: "Interactive Project Map" },
+                page: "/แผนที่โครงการอ้างอิง", badges: [{ label: "✓ Completed", color: "text-success bg-success/10" }, { label: "Interactive", color: "text-gold bg-gold/10" }],
+                tags: ["SVG Map", "JS Filtering", "DOM"],
+                features: { th: ["พัฒนา SVG Map ประเทศไทยแบบ Interactive", "ระบบ Filter กรองข้อมูล 5,000+ โครงการ", "Side Panel รองรับมือถือ"], en: ["Interactive SVG Thailand Map", "Filter 5,000+ projects", "Mobile-ready Side Panel"] }
+            }
+        ];
+
+        const PROGRESS = [
+            { label: { th: "ระบบโครงสร้าง Frontend (HTML/CSS/JS)", en: "Frontend Core Structure" }, pct: 100, color: "bg-ink" },
+            { label: { th: "ระบบ Navbar & Navigation", en: "Navbar & Navigation" }, pct: 100, color: "bg-blue" },
+            { label: { th: "ปรับหน้าต่าง, ประตู, และโชว์ผลงาน", en: "Windows, Doors & Portfolio" }, pct: 100, color: "bg-success" },
+            { label: { th: "Interactive Project Map", en: "Interactive Project Map" }, pct: 100, color: "bg-gold" }
+        ];
+
+        const TIMELINE = [
+            { step: "01", title: { th: "UX/UI Re-Architecture", en: "UX/UI Re-Architecture" }, desc: { th: "วิเคราะห์โครงสร้างเก่า และปรับปรุง Layout ให้ดูพรีเมียม", en: "Analyzed old structure and overhauled layout for a premium feel." } },
+            { step: "02", title: { th: "Develop Core Frontend", en: "Develop Core Frontend" }, desc: { th: "เขียนโค้ด HTML/CSS และ JavaScript สร้างระบบเมนู และฟิลเตอร์", en: "Coded HTML/CSS and JS logic for menus and filters." } },
+            { step: "03", title: { th: "Responsive & Bilingual Optimization", en: "Responsive & Bilingual Optimization" }, desc: { th: "ปรับแต่งแสดงผล Mobile/Tablet 100% และรองรับ TH/EN", en: "100% Responsive optimization and TH/EN language support." } },
+            { step: "04", title: { th: "Production Audit & Deploy", en: "Production Audit & Deploy" }, desc: { th: "ตรวจสอบโค้ด ตัดหน้าเว็บที่ไม่จำเป็น และรวมไฟล์เตรียมขึ้น Production", en: "Code audit, removed unnecessary pages, and deployed to production." } }
+        ];
+
+        const FILES = [
+            { file: "CSS1_6_Premium.css", purpose: { th: "Main stylesheet (Typography, Layout, Colors)", en: "Main stylesheet (Typography, Layout, Colors)" }, bp: "Global" },
+            { file: "JS_MENU_Engine.js", purpose: { th: "ควบคุม Hamburger, Language Toggle และ Dropdown", en: "Script for Hamburger, Lang Toggle & Dropdown" }, bp: "Interactive" },
+            { file: "Banner_Responsive.css", purpose: { th: "CSS สำหรับ Responsive Hero Banner", en: "CSS rules for Responsive Hero Banner" }, bp: "Mobile / Tablet" },
+            { file: "SVG_Map_Logic.js", purpose: { th: "สคริปต์ควบคุมระบบกรองแผนที่โครงการ", en: "Script for Project Map filtering" }, bp: "Map Tool" }
+        ];
+
+        const TYPE_COLORS = {
+            "Corporate": "bg-alu-100 text-ink border-hair",
+            "Content": "bg-blue/10 text-blue border-blue/20",
+            "Product": "bg-success/10 text-success border-success/20",
+            "Gallery": "bg-gold/10 text-gold border-gold/20",
+            "Tool": "bg-slate2/10 text-slate2 border-slate2/20"
+        };
+
+        const TECH_STACK = {
+            frontend: ["HTML5 Semantic", "CSS3 Grid/Flex", "JavaScript ES6+", "TailwindCSS (Showcase)", "SVG Interactive", "Mobile-first"],
+            backend: ["Platform CMS", "Bilingual Model", "SEO Structured Data", "Static Asset Delivery"],
+            tooling: ["Figma (Apple-style UI)", "Git Versioning", "Cross-device QA", "Performance Auditing"]
+        };
+
+        const AUDIT = [
+            { area: { th: "UX / UI Design", en: "UX / UI Design" }, score: 98 },
+            { area: { th: "Responsive Behavior", en: "Responsive Behavior" }, score: 100 },
+            { area: { th: "Performance (Core Web Vitals)", en: "Performance" }, score: 94 },
+            { area: { th: "Code Maintainability", en: "Maintainability" }, score: 95 }
+        ];
+
+        const ROADMAP = [
+            { tag: "Performance", text: { th: "Lazy-load รูปภาพและ iframe ในหน้า Portfolio เพื่อลด LCP", en: "Implement lazy-loading in Portfolio to improve LCP." } },
+            { tag: "Architecture", text: { th: "รวบรวม CSS Tokens ไว้ที่จุดเดียวให้แก้ไข Global Styles ได้ง่ายขึ้น", en: "Centralize CSS Tokens for easier global style management." } }
+        ];
+
+        const CI_COLORS = [
+            { hex: "#0060AB", name: "Corporate Blue", usage: "Primary brand · buttons · active states" },
+            { hex: "#0a1628", name: "Midnight Ink", usage: "Main text, Hero backgrounds" },
+            { hex: "#00c6ff", name: "Accent Glow", usage: "Highlights, gradients, accents" },
+            { hex: "#3d8fdd", name: "Sky Blue", usage: "Hover, links, secondary" },
+            { hex: "#f1f5f9", name: "Brushed Aluminum", usage: "Card backgrounds, dividers" },
+            { hex: "#FFFFFF", name: "Pure White", usage: "Main backgrounds", border: true },
+            { hex: "#2DD4A0", name: "Success Green", usage: "Status badges, checks" },
+            { hex: "#F0C040", name: "Gold Accents", usage: "Highlighting features" }
+        ];
+
+        const CI_FONTS = [
+            { name: "Noto Sans Thai", role: "Primary Thai font", sample: "ผลิตภัณฑ์และตัวอย่างงาน", ff: "Noto Sans Thai" },
+            { name: "DM Sans", role: "Primary English font", sample: "SankyoAlumi Architecture", ff: "DM Sans" },
+            { name: "Prompt", role: "Headings / Display", sample: "Premium Aluminum", ff: "Prompt" },
+            { name: "Space Mono", role: "Code / Data Labels", sample: "UI/UX / 1280px", ff: "Space Mono" }
+        ];
+
+        const CI_IDENTITY = [
+            { k: "โลโก้ (Logo)", v: "三協アルミ · SankyoAlumi" },
+            { k: "มาตรฐาน (Standard)", v: "JIS Japan · ISO 9001 · Since 1960" },
+            { k: "เอกลักษณ์ (Core Identity)", v: "Minimalist, Architectural, High-end" },
+            { k: "สำนักงานใหญ่ (HQ)", v: "กาญจนบุรี · โทร 034-520-996-8" }
+        ];
+
+        // --- 3. ICON SYSTEM (custom SVG line icons) ---
+        const ICON_PATHS = {
+            home:     <React.Fragment><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></React.Fragment>,
+            about:    <React.Fragment><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M9 22v-4h6v4"/><path d="M8.5 6h.01M12 6h.01M15.5 6h.01M8.5 10h.01M12 10h.01M15.5 10h.01M8.5 14h.01M12 14h.01M15.5 14h.01"/></React.Fragment>,
+            shop:     <React.Fragment><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></React.Fragment>,
+            products: <React.Fragment><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></React.Fragment>,
+            doors:    <React.Fragment><path d="M5 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v17"/><path d="M3 21h16"/><path d="M19 21V8h2v13"/><circle cx="12.5" cy="12" r="1"/></React.Fragment>,
+            windows:  <React.Fragment><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M4 12h16M12 4v16"/></React.Fragment>,
+            custom:   <React.Fragment><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></React.Fragment>,
+            portfolio:<React.Fragment><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="m21 15-4.1-4.1a2 2 0 0 0-2.8 0L4 21"/></React.Fragment>,
+            map:      <React.Fragment><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></React.Fragment>,
+            sitemap:  <React.Fragment><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v3M6 16v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></React.Fragment>,
+            news:     <React.Fragment><path d="M4 22a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1h3"/><rect x="6" y="2" width="16" height="20" rx="2"/><path d="M16 6h2M10 6h2M10 10h8M10 14h8M10 18h5"/></React.Fragment>,
+            catalog:  <React.Fragment><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></React.Fragment>,
+            contact:  <React.Fragment><path d="M13.8 16.6a1 1 0 0 0 1.2-.3l.4-.5a2 2 0 0 1 1.6-.8h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.5.4a1 1 0 0 0-.3 1.2 14 14 0 0 0 6.4 6.4"/></React.Fragment>,
+            faq:      <React.Fragment><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></React.Fragment>,
+            layout:   <React.Fragment><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></React.Fragment>,
+            server:   <React.Fragment><rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/><path d="M6 7h.01M6 17h.01"/></React.Fragment>,
+            tools:    <React.Fragment><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></React.Fragment>
+        };
+        function Icon({ name, className = "w-4 h-4", stroke = 2 }) {
+            return (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    {ICON_PATHS[name] || ICON_PATHS.home}
+                </svg>
+            );
+        }
+
+        // --- 4. HOOKS & SMALL COMPONENTS ---
+        function useStageSize() {
+            const ref = useRef(null);
+            const [w, setW] = useState(900);
+            const [vh, setVh] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
+            useLayoutEffect(() => {
+                const el = ref.current; if (!el) return;
+                const upd = () => { setW(el.clientWidth); setVh(window.innerHeight); };
+                upd();
+                const ro = new ResizeObserver(upd); ro.observe(el);
+                window.addEventListener('resize', upd);
+                return () => { ro.disconnect(); window.removeEventListener('resize', upd); };
+            }, []);
+            return [ref, w, vh];
+        }
+
+        function Counter({ value, suffix = '' }) {
+            const [n, setN] = useState(0); const ref = useRef(null);
+            useEffect(() => {
+                const ob = new IntersectionObserver(([e]) => {
+                    if (e.isIntersecting) {
+                        let s = 0; const dur = 1400, inc = value / (dur / 16);
+                        const t = setInterval(() => { s += inc; if (s >= value) { setN(value); clearInterval(t); } else setN(Math.floor(s)); }, 16);
+                        ob.disconnect();
+                    }
+                }, { threshold: 0.5 });
+                if (ref.current) ob.observe(ref.current);
+                return () => ob.disconnect();
+            }, [value]);
+            return <span ref={ref}>{n}{suffix}</span>;
+        }
+
+        function Bar({ label, pct, cls }) {
+            const [w, setW] = useState('0%'); const ref = useRef(null);
+            useEffect(() => {
+                const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setTimeout(() => setW(pct + '%'), 120); ob.disconnect(); } }, { threshold: 0.3 });
+                if (ref.current) ob.observe(ref.current);
+                return () => ob.disconnect();
+            }, [pct]);
+            return (
+                <div ref={ref} className="flex items-center gap-4 mb-3.5">
+                    <span className="text-[13px] text-ink/70 min-w-[150px] md:min-w-[210px] font-medium">{label}</span>
+                    <div className="flex-1 h-[6px] bg-alu-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${cls} transition-all duration-1000 ease-out`} style={{ width: w }}></div>
+                    </div>
+                    <span className="font-mono text-[11px] text-slate2 min-w-[34px] text-right">{pct}%</span>
+                </div>
+            );
+        }
+
+        function SectionHead({ kicker, title, count }) {
+            return (
+                <div className="flex items-end justify-between mb-8 pb-5 border-b border-hair">
+                    <div>
+                        {kicker && <div className="font-mono text-[10px] tracking-[0.22em] text-blue uppercase mb-2 font-bold">{kicker}</div>}
+                        <h2 className="font-display text-[26px] md:text-[30px] font-bold tracking-tightest text-ink leading-none">{title}</h2>
+                    </div>
+                    {count && <span className="font-mono text-[11px] text-slate2 bg-white hairline px-3 py-1 rounded-full shadow-sm">{count}</span>}
+                </div>
+            );
+        }
+
+        function DeviceGlyph({ frame, active }) {
+            const c = active ? '#0060AB' : '#64748b';
+            if (frame === 'phone') return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5"><rect x="6" y="2" width="12" height="20" rx="3" /><path d="M11 18h2" /></svg>;
+            if (frame === 'tablet') return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5"><rect x="4" y="2" width="16" height="20" rx="2.5" /><path d="M11 18h2" /></svg>;
+            return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5"><rect x="2" y="4" width="20" height="14" rx="2" /><path d="M8 22h8M12 18v4" /></svg>;
+        }
+
+        // --- 5. LIVE VIEWPORT (device switcher + drag-scroll chips) ---
+        function LiveViewport({ lang, dict }) {
+            const [pageIdx, setPageIdx] = useState(0);
+            const [devId, setDevId] = useState('laptop');
+            const [landscape, setLandscape] = useState(false);
+            const [stageRef, stageW, vh] = useStageSize();
+            const chipsRef = useRef(null);
+            const drag = useRef({ down: false, startX: 0, startScroll: 0, moved: false });
+            const [chipEdge, setChipEdge] = useState({ l: false, r: true });
+            const page = PAGES[pageIdx];
+            const device = DEVICES.find(d => d.id === devId);
+            const isMobileFrame = device.frame === 'phone' || device.frame === 'tablet';
+            const land = landscape && isMobileFrame;
+            const dw = land ? device.h : device.w;
+            const dh = land ? device.w : device.h;
+            const CH = 44, PADP = 16, PADT = 20;
+            let baseW, baseH, standH = 0;
+
+            if (device.frame === 'phone') { baseW = dw + PADP * 2; baseH = dh + PADP * 2; }
+            else if (device.frame === 'tablet') { baseW = dw + PADT * 2; baseH = dh + PADT * 2; }
+            else { standH = device.id === 'laptop' ? 20 : 30; baseW = dw; baseH = CH + dh + standH; }
+
+            const stageH = Math.max(460, Math.min(vh * 0.65, 750));
+            const scale = Math.min((stageW - 32) / baseW, stageH / baseH, 1);
+            const path = page.url.replace(BASE, '') || '/';
+
+            const updateChipEdge = () => {
+                const el = chipsRef.current; if (!el) return;
+                setChipEdge({ l: el.scrollLeft > 4, r: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
+            };
+            useEffect(() => {
+                updateChipEdge();
+                const t = setTimeout(updateChipEdge, 120);
+                window.addEventListener('resize', updateChipEdge);
+                return () => { clearTimeout(t); window.removeEventListener('resize', updateChipEdge); };
+            }, [lang]);
+            const scrollChips = (dir) => { const el = chipsRef.current; if (!el) return; el.scrollBy({ left: dir * 280, behavior: 'smooth' }); };
+
+            // Drag-to-scroll (mouse / touch via pointer events)
+            const onChipDown = (e) => { const el = chipsRef.current; if (!el) return; drag.current = { down: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false }; };
+            const onChipMove = (e) => {
+                if (!drag.current.down) return;
+                const dx = e.clientX - drag.current.startX;
+                if (Math.abs(dx) > 4) drag.current.moved = true;
+                chipsRef.current.scrollLeft = drag.current.startScroll - dx;
+                updateChipEdge();
+            };
+            const endChipDrag = () => { drag.current.down = false; };
+
+            const Chrome = (
+                <div className="h-[44px] bg-[#f1f5f9] border-b border-hair flex items-center gap-3 px-5 shrink-0 shadow-sm relative z-10">
+                    <div className="flex gap-2">
+                        <span className="w-3.5 h-3.5 rounded-full bg-[#ff5f57] shadow-inner"></span>
+                        <span className="w-3.5 h-3.5 rounded-full bg-[#febc2e] shadow-inner"></span>
+                        <span className="w-3.5 h-3.5 rounded-full bg-[#28c840] shadow-inner"></span>
+                    </div>
+                    <div className="flex-1 mx-4 bg-white border border-hair rounded-lg text-[12px] text-slate2 font-mono px-4 py-1.5 truncate flex items-center gap-2.5 shadow-sm justify-center max-w-xl">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-alu-400 shrink-0"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                        sankyoalumithailand.com<span className="opacity-40">{decodeURIComponent(path).slice(0, 32)}</span>
+                    </div>
+                </div>
+            );
+
+            const Screen = (
+                <div className="w-full h-full bg-white overflow-hidden vp-loading relative">
+                    <iframe key={page.url + devId + landscape} src={page.url} title={page.name[lang]}
+                        loading="lazy" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                        style={{ width: '100%', height: '100%', border: 0 }} className="animate-fade" />
+                </div>
+            );
+
+            let frame;
+            if (device.frame === 'phone') {
+                frame = (
+                    <div style={{ width: baseW, height: baseH }} className="relative stage-shadow rounded-[56px] transition-all duration-300">
+                        <div className="absolute inset-0 rounded-[56px] bg-[#1a1c23] shadow-inner"></div>
+                        <div className="absolute inset-0 rounded-[56px] ring-2 ring-white/10"></div>
+                        <div className="absolute overflow-hidden rounded-[42px] bg-black" style={{ top: PADP, left: PADP, right: PADP, bottom: PADP }}>
+                            {Screen}
+                            <div className={`absolute bg-black rounded-full z-20 shadow-md ${land ? 'left-3 top-1/2 -translate-y-1/2 h-[30%] w-[28px]' : 'top-3 left-1/2 -translate-x-1/2 w-[30%] h-[28px]'}`}></div>
+                            <div className={`absolute bg-black/20 rounded-full z-20 ${land ? 'right-2 top-1/2 -translate-y-1/2 h-[35%] w-[4px]' : 'bottom-2 left-1/2 -translate-x-1/2 w-[35%] h-[4px]'}`}></div>
+                        </div>
+                    </div>
+                );
+            } else if (device.frame === 'tablet') {
+                frame = (
+                    <div style={{ width: baseW, height: baseH }} className="relative stage-shadow rounded-[36px] transition-all duration-300">
+                        <div className="absolute inset-0 rounded-[36px] bg-[#1e222b]"></div>
+                        <div className="absolute inset-0 rounded-[36px] ring-2 ring-white/10"></div>
+                        <div className="absolute overflow-hidden rounded-[20px] bg-black" style={{ top: PADT, left: PADT, right: PADT, bottom: PADT }}>
+                            {Screen}
+                            <div className={`absolute w-[6px] h-[6px] bg-[#000] rounded-full z-20 ring-1 ring-white/10 ${land ? 'left-2.5 top-1/2 -translate-y-1/2' : 'top-2.5 left-1/2 -translate-x-1/2'}`}></div>
+                        </div>
+                    </div>
+                );
+            } else {
+                frame = (
+                    <div style={{ width: baseW, height: baseH }} className="relative transition-all duration-300">
+                        <div className="absolute top-0 left-0 right-0 rounded-t-[16px] rounded-b-md overflow-hidden bg-white hairline stage-shadow flex flex-col border border-black/5" style={{ height: CH + dh }}>
+                            {Chrome}
+                            <div className="flex-1 overflow-hidden">{Screen}</div>
+                        </div>
+                        {device.id === 'laptop' ? (
+                            <div className="absolute left-1/2 -translate-x-1/2 flex justify-center" style={{ top: CH + dh, width: baseW * 1.14 }}>
+                                <div className="brushed rounded-b-[18px] border-x border-b border-alu-300 relative shadow-2xl flex flex-col items-center w-full" style={{ height: standH }}>
+                                    <div className="absolute top-0 w-28 h-2 rounded-b-md bg-alu-300/40 shadow-inner"></div>
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
+                );
+            }
+
+            return (
+                <div className="animate-fade">
+                    <SectionHead kicker="Live Viewport" title={dict.vp_title} count={`${PAGES.length} ${dict.page}`} />
+
+                    {/* Page chips — drag-to-scroll + arrows + edge fades */}
+                    <div className="relative -mt-2 mb-4">
+                        <div className={`pointer-events-none absolute left-0 top-0 bottom-4 w-12 z-10 bg-gradient-to-r from-[#f8fafc] to-transparent transition-opacity duration-200 ${chipEdge.l ? 'opacity-100' : 'opacity-0'}`}></div>
+                        <div className={`pointer-events-none absolute right-0 top-0 bottom-4 w-12 z-10 bg-gradient-to-l from-[#f8fafc] to-transparent transition-opacity duration-200 ${chipEdge.r ? 'opacity-100' : 'opacity-0'}`}></div>
+                        {chipEdge.l && (
+                            <button onClick={() => scrollChips(-1)} aria-label="scroll left"
+                                className="absolute left-0 top-[calc(50%-8px)] -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white hairline shadow-md flex items-center justify-center text-ink hover:bg-alu-50 hover:text-blue transition-colors">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+                            </button>
+                        )}
+                        {chipEdge.r && (
+                            <button onClick={() => scrollChips(1)} aria-label="scroll right"
+                                className="absolute right-0 top-[calc(50%-8px)] -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white hairline shadow-md flex items-center justify-center text-ink hover:bg-alu-50 hover:text-blue transition-colors">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                            </button>
+                        )}
+                        <div ref={chipsRef} onScroll={updateChipEdge}
+                            onPointerDown={onChipDown} onPointerMove={onChipMove} onPointerUp={endChipDrag} onPointerLeave={endChipDrag}
+                            className="flex gap-2.5 overflow-x-auto hide-sb pb-4 px-1 cursor-grab active:cursor-grabbing select-none">
+                            {PAGES.map((p, i) => (
+                                <button key={p.id} onClick={() => { if (drag.current.moved) return; setPageIdx(i); }}
+                                    className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold border transition-all duration-200 ${i === pageIdx ? 'bg-ink text-white border-ink shadow-md scale-105' : 'bg-white text-ink/70 border-hair hover:border-blue hover:text-blue shadow-sm'}`}>
+                                    <Icon name={p.icon} className="w-[15px] h-[15px] shrink-0" stroke={2} />{p.name[lang]}
+                                    {p.isNew && <span className="text-[9px] font-bold bg-success/20 text-success px-1.5 py-0.5 rounded-md uppercase tracking-wider">NEW</span>}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Device toolbar */}
+                    <div className="flex flex-wrap items-center gap-4 bg-white/80 backdrop-blur-md hairline rounded-2xl p-3 mb-8 shadow-sm">
+                        <div className="flex items-center gap-1.5 bg-alu-50 rounded-xl p-1.5 overflow-x-auto hide-sb border border-hair">
+                            {DEVICES.map(d => (
+                                <button key={d.id} onClick={() => setDevId(d.id)}
+                                    className={`shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-[12px] font-bold transition-all duration-200 ${d.id === devId ? 'bg-white text-blue shadow-sm hairline' : 'text-slate2 hover:text-ink hover:bg-white/60'}`}>
+                                    <DeviceGlyph frame={d.frame} active={d.id === devId} />
+                                    <span className="hidden sm:inline">{d.short}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <button onClick={() => setLandscape(v => !v)} disabled={!isMobileFrame}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold border transition-all duration-200 ${!isMobileFrame ? 'opacity-40 cursor-not-allowed bg-white text-slate2 border-hair' : land ? 'bg-blue/10 text-blue border-blue/20' : 'bg-white text-slate2 border-hair hover:text-ink hover:bg-alu-50 shadow-sm'}`}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" /><path d="M3 21v-5h5" /></svg>
+                            {dict.rotate}
+                        </button>
+                        <span className="font-mono text-[12px] text-ink/60 font-bold ml-auto px-4 py-2 bg-alu-50 rounded-xl hidden sm:block border border-hair shadow-inner">{dw} × {dh}<span className="opacity-40 ml-2">· {(scale * 100).toFixed(0)}%</span></span>
+                        <a href={page.url} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-2 bg-ink hover:bg-blue text-white text-[12.5px] font-bold px-5 py-2 rounded-xl transition-colors ml-auto sm:ml-0 shadow-md">
+                            {dict.openLive}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>
+                        </a>
+                    </div>
+
+                    {/* Stage */}
+                    <div ref={stageRef} className="alu-mesh grid-lines hairline rounded-[32px] px-4 py-12 flex items-center justify-center overflow-hidden relative" style={{ minHeight: stageH + 80 }}>
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/60 pointer-events-none"></div>
+                        <div className="relative z-10" style={{ width: baseW * scale, height: baseH * scale }}>
+                            <div className="absolute top-0 left-0 origin-top-left transition-transform duration-300 ease-out" style={{ width: baseW, height: baseH, transform: `scale(${scale})` }}>
+                                {frame}
+                            </div>
+                        </div>
+                    </div>
+                    <p className="text-center text-[12px] text-slate2 mt-5 font-medium">{dict.vp_hint}</p>
+                </div>
+            );
+        }
+
+        function SummaryTab({ lang, dict }) {
+            return (
+                <div className="animate-fade space-y-16 pb-6">
+                    <div>
+                        <SectionHead kicker="Architecture & UI" title={dict.tasksTitle} count={`${TASKS.length} ${dict.taskItems}`} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {TASKS.map(t => (
+                                <div key={t.id} className="group bg-white hairline rounded-[24px] p-8 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <span className="font-display text-[36px] font-bold text-alu-300 group-hover:text-blue/40 transition-colors leading-none">{t.num}</span>
+                                        <div className="flex gap-1.5">{t.badges.map((b, i) => (<span key={i} className={`text-[10px] font-bold px-3 py-1.5 rounded-lg ${b.color}`}>{b.label}</span>))}</div>
+                                    </div>
+                                    <h3 className="font-display text-[19px] font-bold text-ink mb-2 leading-tight">{t.title[lang]}</h3>
+                                    <div className="font-mono text-[11px] font-bold text-blue mb-6 bg-blue/5 border border-blue/10 inline-block px-2.5 py-1 rounded-md w-fit">{t.page}</div>
+                                    <ul className="space-y-3.5 mb-8 flex-1">
+                                        {t.features[lang].map((f, i) => (
+                                            <li key={i} className="flex gap-3 text-[14px] text-ink/80 leading-relaxed font-medium">
+                                                <span className="text-blue-light mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-light shrink-0"></span>{f}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <div className="flex flex-wrap gap-2 pt-6 border-t border-hair">
+                                        {t.tags.map(tag => (<span key={tag} className="text-[11px] font-bold text-slate2 bg-alu-50 border border-hair rounded-full px-3 py-1.5">{tag}</span>))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <SectionHead kicker="Under the hood" title={dict.stackTitle} />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {[['frontend', 'layout', TECH_STACK.frontend], ['backend', 'server', TECH_STACK.backend], ['tooling', 'tools', TECH_STACK.tooling]].map(([k, ic, items]) => (
+                                <div key={k} className="bg-white hairline rounded-[24px] p-8 hover:card-shadow transition-shadow">
+                                    <div className="flex items-center gap-3 mb-6"><span className="w-11 h-11 rounded-xl bg-blue/8 border border-blue/15 flex items-center justify-center text-blue"><Icon name={ic} className="w-5 h-5" /></span><h3 className="font-display text-[16px] font-bold uppercase tracking-widest text-ink">{dict[k]}</h3></div>
+                                    <div className="flex flex-wrap gap-2">{items.map(i => (<span key={i} className="text-[12px] font-bold text-ink/70 bg-alu-50 border border-hair rounded-lg px-3.5 py-1.5 shadow-sm">{i}</span>))}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="bg-white hairline rounded-[24px] p-9 shadow-sm">
+                            <h3 className="font-display text-[22px] font-bold text-ink mb-8">{dict.progTitle}</h3>
+                            {PROGRESS.map((p, i) => (<Bar key={i} label={p.label[lang]} pct={p.pct} cls={p.color} />))}
+                        </div>
+                        <div className="bg-white hairline rounded-[24px] p-9 shadow-sm">
+                            <h3 className="font-display text-[22px] font-bold text-ink mb-8">{dict.timelineTitle}</h3>
+                            <div className="relative pl-8 space-y-8">
+                                <div className="absolute left-[9px] top-2 bottom-2 w-[2px] bg-hair"></div>
+                                {TIMELINE.map((s, i) => (
+                                    <div key={i} className="relative group">
+                                        <div className="absolute -left-[30px] top-0.5 w-4 h-4 rounded-full bg-white border-[4px] border-blue group-hover:bg-blue transition-colors"></div>
+                                        <div className="font-mono text-[10px] text-blue font-bold tracking-widest mb-1.5">STEP {s.step}</div>
+                                        <div className="font-display text-[16px] font-bold text-ink mb-1.5">{s.title[lang]}</div>
+                                        <div className="text-[14px] text-ink/70 leading-relaxed font-medium">{s.desc[lang]}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function SitemapTab({ lang, dict }) {
+            return (
+                <div className="animate-fade pb-6">
+                    <SectionHead kicker="Architecture" title={dict.sitemapTitle} count={`${PAGES.length} ${dict.page}`} />
+                    <div className="bg-white hairline rounded-[24px] overflow-hidden shadow-sm">
+                        <div className="overflow-x-auto thin-sb">
+                            <table className="w-full text-left border-collapse min-w-[750px]">
+                                <thead><tr className="bg-alu-50/80 border-b border-hair">
+                                    {[dict.pageCol, dict.urlCol, dict.funcCol, dict.typeCol].map(h => (<th key={h} className="px-7 py-5 text-[11px] font-bold text-slate2 uppercase tracking-widest">{h}</th>))}
+                                </tr></thead>
+                                <tbody className="bg-white">
+                                    {PAGES.map(p => (
+                                        <tr key={p.id} className="border-b border-hair last:border-0 hover:bg-alu-50/50 transition-colors">
+                                            <td className="px-7 py-5 align-top"><div className="flex items-center gap-3 font-bold text-ink text-[14.5px]"><span className="w-8 h-8 rounded-lg bg-blue/8 border border-blue/12 flex items-center justify-center text-blue shrink-0"><Icon name={p.icon} className="w-[17px] h-[17px]" /></span>{p.name[lang]}{p.isNew && <span className="text-[9px] font-bold bg-success/20 text-success px-2 py-0.5 rounded-md tracking-wider">NEW</span>}</div></td>
+                                            <td className="px-7 py-5 align-top"><a href={p.url} target="_blank" rel="noopener noreferrer" className="font-mono text-[11px] text-blue bg-blue/5 rounded-md px-3 py-1.5 inline-block max-w-[220px] truncate hover:bg-blue/15 transition-colors border border-blue/10 font-bold">{decodeURIComponent(p.url.replace(BASE, '') || '/').slice(0, 30)}</a></td>
+                                            <td className="px-7 py-5 align-top"><div className="flex flex-wrap gap-2.5">{p.funcs[lang].map(f => (<span key={f} className="text-[12px] bg-white border border-hair text-ink/75 font-medium rounded-md px-3 py-1 shadow-sm">{f}</span>))}</div></td>
+                                            <td className="px-7 py-5 align-top"><span className={`text-[11px] font-bold px-3.5 py-1.5 rounded-full border ${TYPE_COLORS[p.type]}`}>{p.type}</span></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function ResponsiveTab({ lang, dict }) {
+            const bps = [
+                { icon: 'phone', name: 'Mobile Layout', range: '320 – 767px', desc: { th: "แสดงผล 1 คอลัมน์สมบูรณ์แบบ", en: "Single-col optimized layout" }, f: ["CSS-only Hero Banner", "Full-height Menu Drawer", "Apple-style Capsule Buttons", "Bottom-safe paddings"] },
+                { icon: 'tablet', name: 'iPad / Tablet', range: '768 – 1279px', desc: { th: "รองรับ 2 คอลัมน์ + Grid ยืดหยุ่น", en: "2-col + Flexible Grid" }, f: ["Premium Hamburger Menu", "Accordion Submenu", "2-col Product Grid", "Floating interactive elements"] },
+                { icon: 'browser', name: 'Desktop & Widescreen', range: '≥ 1280px', desc: { th: "แสดงผลเต็มรูปแบบด้วย Whitespace", en: "Full layout with ample whitespace" }, f: ["CSS Grid 3-column", "Glassmorphism Sticky Navbar", "Full Dropdown Menu", "Multi-column Footer"] }
+            ];
+            return (
+                <div className="animate-fade pb-6 space-y-16">
+                    <div>
+                        <SectionHead kicker="Every screen" title={dict.respTitle} count="3 breakpoints" />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {bps.map((b, i) => (
+                                <div key={i} className="bg-white hairline rounded-[24px] p-9 hover:shadow-xl transition-all duration-300">
+                                    <div className="mb-6 bg-alu-50 w-14 h-14 rounded-2xl flex items-center justify-center border border-hair shadow-sm"><DeviceGlyph frame={b.icon} active={true} /></div>
+                                    <h3 className="font-display text-[22px] font-bold text-ink mb-2">{b.name}</h3>
+                                    <div className="font-mono text-[12px] text-blue bg-blue/10 inline-block px-3.5 py-1.5 rounded-md mb-5 font-bold">{b.range}</div>
+                                    <p className="text-[14.5px] text-slate2 mb-7 leading-relaxed font-medium">{b.desc[lang]}</p>
+                                    <ul className="space-y-4 pt-6 border-t border-hair">{b.f.map((x, j) => (<li key={j} className="flex items-center gap-3 text-[14px] text-ink/80 font-semibold"><span className="text-success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>{x}</li>))}</ul>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <SectionHead kicker="Deliverables" title={dict.fileTitle} count={`${FILES.length} files`} />
+                        <div className="bg-white hairline rounded-[24px] overflow-hidden shadow-sm">
+                            {FILES.map((f, i) => (
+                                <div key={i} className={`flex flex-col sm:flex-row sm:items-center gap-4 px-8 py-6 hover:bg-alu-50/50 transition-colors ${i < FILES.length - 1 ? 'border-b border-hair' : ''}`}>
+                                    <div className="font-mono text-[13px] text-blue bg-blue/5 border border-blue/10 px-4 py-2.5 rounded-lg sm:w-[280px] shrink-0 flex items-center gap-3 font-bold shadow-sm">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /></svg>{f.file}
+                                    </div>
+                                    <div className="text-[14.5px] text-ink/80 flex-1 leading-relaxed font-medium">{f.purpose[lang]}</div>
+                                    <span className="font-mono text-[11px] text-slate2 bg-white border border-hair px-3.5 py-1.5 rounded-full shrink-0 font-bold shadow-sm">{f.bp}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function CIBrandTab({ lang, dict }) {
+            return (
+                <div className="animate-fade pb-6 space-y-16">
+                    <div>
+                        <SectionHead kicker="Identity" title={dict.colorTitle} count="Primary · #0060AB" />
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            {CI_COLORS.map((c, i) => (
+                                <div key={i} className="bg-white hairline rounded-[24px] p-6 hover:shadow-xl transition-all duration-300 group">
+                                    <div className={`w-full h-28 rounded-[16px] mb-5 ${c.border ? 'hairline' : ''} group-hover:scale-[1.03] transition-transform shadow-inner`} style={{ background: c.hex }}></div>
+                                    <div className="font-display text-[16px] font-bold text-ink">{c.name}</div>
+                                    <div className="font-mono text-[12px] text-slate2 mb-2 bg-alu-50 w-fit px-2.5 py-1 rounded-md mt-1.5 border border-hair font-bold">{c.hex}</div>
+                                    <div className="text-[12.5px] text-ink/65 leading-relaxed mt-2.5 font-medium">{c.usage}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-white hairline rounded-[24px] p-9 shadow-sm">
+                            <h3 className="font-display text-[22px] font-bold text-ink mb-8">{dict.fontTitle}</h3>
+                            <div className="space-y-5">
+                                {CI_FONTS.map((f, i) => (
+                                    <div key={i} className="bg-alu-50 rounded-2xl p-6 border border-hair hover:bg-white hover:shadow-md transition-all duration-300">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div className="text-[11px] text-slate2 font-bold uppercase tracking-widest">{f.role}</div>
+                                            <div className="font-mono text-[11px] text-ink bg-white hairline px-3 py-1 rounded-md shadow-sm font-bold">{f.name}</div>
+                                        </div>
+                                        <div className="text-[28px] text-ink font-medium tracking-tight" style={{ fontFamily: f.ff + ',sans-serif' }}>{f.sample}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="bg-white hairline rounded-[24px] p-9 shadow-sm">
+                            <h3 className="font-display text-[22px] font-bold text-ink mb-8">{dict.idTitle}</h3>
+                            <div className="space-y-5">
+                                {CI_IDENTITY.map((id, i) => (
+                                    <div key={i} className="bg-white border border-hair rounded-2xl px-6 py-5 hover:border-blue/40 hover:shadow-md transition-all duration-300 shadow-sm">
+                                        <div className="text-[11px] text-blue font-bold uppercase tracking-widest mb-2">{id.k}</div>
+                                        <div className="text-[16px] font-bold text-ink">{id.v}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function EngineeringTab({ lang, dict }) {
+            const overall = Math.round(AUDIT.reduce((a, b) => a + b.score, 0) / AUDIT.length);
+            return (
+                <div className="animate-fade pb-6 space-y-16">
+                    <div>
+                        <SectionHead kicker="Quality" title={dict.auditTitle} count={`${dict.readiness}: ${overall}%`} />
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 bg-white hairline rounded-[24px] p-9 shadow-sm">
+                                {AUDIT.map((a, i) => (<Bar key={i} label={a.area[lang]} pct={a.score} cls={a.score >= 95 ? 'bg-success' : a.score >= 90 ? 'bg-blue' : 'bg-gold'} />))}
+                            </div>
+                            <div className="rounded-[24px] p-9 text-center flex flex-col items-center justify-center text-white relative overflow-hidden stage-shadow" style={{ background: 'linear-gradient(145deg, #0a1628, #0060AB)' }}>
+                                <div className="absolute inset-0 bg-white/5" style={{ backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                                <div className="relative z-10">
+                                    <div className="font-mono text-[12px] tracking-[0.25em] text-blue-glow uppercase mb-5 font-bold">{dict.readiness}</div>
+                                    <div className="font-display text-[84px] font-bold leading-none mb-4"><Counter value={overall} suffix="%" /></div>
+                                    <div className="text-[14px] text-white/70 leading-relaxed font-medium px-4">{STATS[0].num}+ Pages · Premium Apple UI · Bilingual · Production-ready</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <SectionHead kicker="Next" title={dict.roadmapTitle} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {ROADMAP.map((r, i) => (
+                                <div key={i} className="bg-white hairline rounded-[24px] p-7 flex gap-5 hover:shadow-lg transition-shadow">
+                                    <span className="text-[11px] font-bold uppercase tracking-widest text-blue bg-blue/10 border border-blue/20 rounded-full px-4 py-2 h-fit shrink-0">{r.tag}</span>
+                                    <p className="text-[14.5px] text-ink/80 leading-relaxed pt-1 font-medium">{r.text[lang]}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const [lang, setLang] = useState('th');
+            const [tab, setTab] = useState('viewport');
+            const dict = DICT[lang];
+
+            const TABS = [
+                { id: 'viewport', label: dict.tab_viewport },
+                { id: 'summary', label: dict.tab_summary },
+                { id: 'sitemap', label: dict.tab_sitemap },
+                { id: 'responsive', label: dict.tab_responsive },
+                { id: 'ci', label: dict.tab_ci },
+                { id: 'eng', label: dict.tab_eng }
+            ];
+
+            return (
+                <div className="min-h-screen flex flex-col font-sans selection:bg-blue/20">
+                    {/* Sticky Glassmorphism Nav */}
+                    <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-hair shadow-sm saturate-150">
+                        <div className="max-w-[1240px] mx-auto px-6 lg:px-10 h-20 flex items-center gap-6">
+                            {/* Clickable logo → back to Live Preview (home) */}
+                            <button onClick={() => setTab('viewport')} aria-label="SankyoAlumi — home"
+                                className="flex items-center gap-3 shrink-0 group rounded-2xl pr-2 -ml-1 transition-colors hover:bg-alu-100/60">
+                                <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-display font-bold text-white text-[16px] shadow-md group-hover:scale-105 group-active:scale-95 transition-transform relative overflow-hidden" style={{ background: 'linear-gradient(145deg, #0060AB, #00c6ff)' }}>
+                                    <span className="relative z-10">三</span>
+                                    <span className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,.6), transparent 50%)' }}></span>
+                                </div>
+                                <div className="hidden md:flex flex-col leading-none text-left">
+                                    <span className="font-display font-bold text-ink text-[17px] tracking-tight">SankyoAlumi</span>
+                                    <span className="font-mono text-[9px] text-slate2 tracking-[0.18em] uppercase mt-1 group-hover:text-blue transition-colors">Dev Showcase</span>
+                                </div>
+                            </button>
+                            <div className="flex-1 flex items-center gap-1.5 overflow-x-auto hide-sb px-2">
+                                {TABS.map(t => (
+                                    <button key={t.id} onClick={() => setTab(t.id)}
+                                        className={`shrink-0 px-4 py-2.5 rounded-full text-[13.5px] font-bold transition-all duration-200 ${tab === t.id ? 'bg-ink text-white shadow-md' : 'text-ink/60 hover:text-ink hover:bg-alu-100'}`}>{t.label}</button>
+                                ))}
+                            </div>
+                            <div className="flex items-center bg-alu-100 border border-hair rounded-full p-1.5 shrink-0 shadow-inner">
+                                {['th', 'en'].map(l => (
+                                    <button key={l} onClick={() => setLang(l)}
+                                        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold transition-all duration-200 uppercase tracking-wider ${lang === l ? 'bg-white text-blue shadow-sm' : 'text-slate2 hover:text-ink'}`}>{l}</button>
+                                ))}
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* Hero Section */}
+                    <header className="alu-mesh border-b border-hair relative overflow-hidden bg-white">
+                        <div className="absolute inset-0 grid-lines opacity-40"></div>
+                        <div className="absolute top-[-30%] left-[10%] w-[40%] h-[60%] bg-blue-light/10 rounded-full blur-[100px] pointer-events-none blob-anim"></div>
+                        <div className="absolute bottom-[-20%] right-[5%] w-[35%] h-[50%] bg-blue/10 rounded-full blur-[100px] pointer-events-none blob-anim" style={{ animationDelay: '2s' }}></div>
+
+                        <div className="max-w-[1240px] mx-auto px-6 lg:px-10 pt-24 pb-20 lg:pt-32 lg:pb-24 relative z-10 flex flex-col lg:flex-row items-start justify-between gap-12">
+                            <div className="max-w-2xl">
+                                <div className="font-mono text-[12px] tracking-[0.3em] text-blue uppercase mb-6 reveal flex items-center gap-4 font-bold">
+                                    <span className="w-8 h-[2px] bg-blue rounded-full"></span>{dict.eyebrow}
+                                </div>
+                                <h1 className="font-display font-bold text-ink tracking-tightest leading-[1.05] reveal" style={{ fontSize: 'clamp(48px, 6vw, 84px)', animationDelay: '.05s' }}>
+                                    {dict.h1a}<br /><span className="bg-gradient-to-r from-blue to-blue-glow bg-clip-text text-transparent">{dict.h1b}</span>
+                                </h1>
+                                <p className="text-slate2 text-[16px] md:text-[18px] max-w-xl mt-8 leading-relaxed reveal font-medium" style={{ animationDelay: '.12s' }}>{dict.lede}</p>
+
+                                <div className="flex flex-wrap items-center gap-5 mt-10 reveal" style={{ animationDelay: '.18s' }}>
+                                    <a href={BASE + '/'} target="_blank" rel="noopener noreferrer" className="sheen-wrap inline-flex items-center gap-2 bg-ink text-white text-[15px] font-bold px-8 py-4 rounded-full hover:bg-blue-deep transition-all shadow-lg hover:shadow-2xl hover:-translate-y-0.5 group">
+                                        {dict.openLive}
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-px bg-hair rounded-[32px] overflow-hidden hairline reveal stage-shadow shrink-0 w-full lg:w-auto" style={{ animationDelay: '.24s' }}>
+                                {STATS.slice(0, 4).map((s, i) => (
+                                    <div key={i} className="bg-white/95 px-8 py-8 text-center backdrop-blur-md">
+                                        <div className="font-display text-[40px] font-bold text-ink leading-none"><Counter value={s.num} suffix={s.suffix} /></div>
+                                        <div className="text-[11px] text-slate2 mt-3 uppercase tracking-widest font-bold">{dict[s.key]}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Content Main Area */}
+                    <main className="flex-1 max-w-[1240px] mx-auto w-full px-6 lg:px-10 py-16 lg:py-24 relative z-10">
+                        {tab === 'viewport' && <LiveViewport lang={lang} dict={dict} />}
+                        {tab === 'summary' && <SummaryTab lang={lang} dict={dict} />}
+                        {tab === 'sitemap' && <SitemapTab lang={lang} dict={dict} />}
+                        {tab === 'responsive' && <ResponsiveTab lang={lang} dict={dict} />}
+                        {tab === 'ci' && <CIBrandTab lang={lang} dict={dict} />}
+                        {tab === 'eng' && <EngineeringTab lang={lang} dict={dict} />}
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-white border-t border-hair mt-auto relative z-10">
+                        <div className="max-w-[1240px] mx-auto px-6 lg:px-10 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <button onClick={() => setTab('viewport')} className="flex items-center gap-4 group">
+                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-display font-bold text-white text-[16px] shadow-sm group-hover:scale-105 transition-transform" style={{ background: 'linear-gradient(145deg, #0060AB, #00c6ff)' }}>三</div>
+                                <div className="text-left">
+                                    <div className="font-display font-bold text-[16px] text-ink">{dict.footer}</div>
+                                    <div className="text-[13px] text-slate2 font-bold mt-0.5">SankyoAlumi Thailand</div>
+                                </div>
+                            </button>
+                            <div className="text-[13px] text-slate2 font-mono flex items-center gap-4 font-bold">
+                                <a href={BASE} target="_blank" rel="noopener noreferrer" className="hover:text-blue transition-colors">sankyoalumithailand.com</a>
+                                <span className="opacity-30">·</span>
+                                <span className="font-sans font-bold">{dict.company}</span>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
